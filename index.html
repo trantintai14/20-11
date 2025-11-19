@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>20/11 — Chúc cô Hằng</title>
+  <style>
+    :root{
+      --bg:#000;
+      --matrix:#7CFC00;
+      --accent:#00ffcc;
+    }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--matrix);font-family:Consolas,Monaco,monospace;overflow:hidden}
+
+    /* MATRIX CANVAS FULL SCREEN */
+    #canvas-wrap{position:fixed;inset:0;z-index:0}
+    canvas{width:100%;height:100%;display:block}
+
+    /* SMALL RUNNING PHRASES MULTI-LINES */
+    .ticker-wrap{
+      position:fixed;
+      inset:0;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-around;
+      z-index:2;
+      pointer-events:none;
+      overflow:hidden;
+      padding:10px 0;
+    }
+    .ticker{
+      display:inline-block;
+      white-space:nowrap;
+      font-size:14px;
+      line-height:1.2;
+      animation:scroll 12s linear infinite;
+      color:var(--matrix);
+      text-shadow:0 0 6px rgba(0,255,204,0.2);
+    }
+    @keyframes scroll{
+      from{transform:translateX(100%)}
+      to{transform:translateX(-100%)}
+    }
+
+    /* CENTRAL BIG MESSAGE */
+    .big-message {
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:3;
+      pointer-events:none;
+      opacity:0;
+      transform:scale(0.85);
+      transition:opacity 0.9s ease-out, transform 0.9s ease-out;
+      text-align:center;
+      padding:20px;
+    }
+    .big-message.show {
+      opacity:1;
+      transform:scale(1);
+    }
+    .big-message h1{
+      margin:0;
+      font-size:clamp(28px, 6vw, 68px);
+      letter-spacing:1px;
+      line-height:1.05;
+      color:var(--accent);
+      text-shadow:
+        0 2px 4px rgba(0,0,0,0.6),
+        0 0 12px rgba(0,255,204,0.5),
+        0 0 18px rgba(0,255,204,0.3);
+      text-transform:uppercase;
+      text-align:center;
+      padding:12px 18px;
+      border-radius:12px;
+      backdrop-filter: blur(4px) saturate(120%);
+    }
+
+    /* FOOTER CREDIT */
+    #corner{position:fixed;right:8px;bottom:6px;font-size:11px;color:#bdbdbd;z-index:4;opacity:0.9}
+
+    /* GLOW EFFECT */
+    .glow {
+      animation:glow 1.8s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 8px rgba(0,255,204,0.06); }
+      to   { text-shadow: 0 0 18px rgba(0,255,204,0.22); }
+    }
+
+    /* MOBILE */
+    @media (max-width:520px){
+      .ticker{font-size:12px;animation-duration:15s}
+      .big-message h1{font-size:clamp(20px,8vw,42px)}
+    }
+  </style>
+</head>
+<body>
+  <!-- MATRIX BACKGROUND -->
+  <div id="canvas-wrap"><canvas id="matrix"></canvas></div>
+
+  <!-- SMALL RUNNING PHRASES MULTI-LINES -->
+  <div class="ticker-wrap" id="tickers"></div>
+
+  <!-- BIG MESSAGE -->
+  <div class="big-message" id="bigmsg">
+    <h1 id="bigtext">CHÚC CÔ HẰNG LUÔN NHIỆT HUYẾT, SÁNG TẠO VÀ TRUYỀN CẢM HỨNG CHO THẾ HỆ HỌC SINH YÊU TIN HỌC !</h1>
+  </div>
+
+  <div id="corner">by trantintai</div>
+
+  <script>
+    // ---------- CREATE MULTI-LINE TICKERS ----------
+    const tickers = document.getElementById('tickers');
+    const phrase = ":20/11 vui vẻ nha cô Hằng    ";
+    const lines = 6; // số hàng chạy
+    for(let i=0;i<lines;i++){
+      const span = document.createElement('div');
+      span.className = 'ticker';
+      span.textContent = phrase.repeat(20);
+      // mỗi dòng có tốc độ khác 1 chút
+      span.style.animationDuration = `${12 + i*2}s`;
+      tickers.appendChild(span);
+    }
+
+    // ---------- MATRIX CANVAS ----------
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    function resize(){
+      canvas.width = innerWidth * devicePixelRatio;
+      canvas.height = innerHeight * devicePixelRatio;
+      ctx.scale(devicePixelRatio,1,devicePixelRatio,1);
+    }
+    window.addEventListener('resize', resize, {passive:true});
+    resize();
+
+    const cols = Math.floor(innerWidth / 14);
+    const ypos = Array(cols).fill(0);
+
+    function matrixTick(){
+      ctx.fillStyle='rgba(0,0,0,0.08)';
+      ctx.fillRect(0,0,innerWidth,innerHeight);
+      ctx.font='13px monospace';
+      for(let i=0;i<ypos.length;i++){
+        const x=i*14;
+        const text=Math.random()>0.6 ? (Math.random()>0.5?'0':'1') : String.fromCharCode(0x30A0 + Math.random()*96|0);
+        ctx.fillStyle='rgba(124,252,0,0.85)';
+        ctx.fillText(text,x,ypos[i]);
+        if(Math.random()<0.02){
+          ctx.fillStyle='rgba(0,255,204,0.9)';
+          ctx.fillText(text,x,ypos[i]-12);
+        }
+        ypos[i] = (ypos[i] > innerHeight + Math.random()*100) ? 0 : ypos[i]+14*(0.5+Math.random()*0.8);
+      }
+    }
+    let matrixInterval = setInterval(matrixTick,45);
+
+    // ---------- SHOW BIG MESSAGE ----------
+    const bigmsg = document.getElementById('bigmsg');
+    setTimeout(()=>{
+      bigmsg.classList.add('show');
+      document.getElementById('bigtext').classList.add('glow');
+      // matrix chậm lại để đọc chữ lớn
+      clearInterval(matrixInterval);
+      matrixInterval = setInterval(matrixTick,90);
+      // ticker chậm lại
+      document.querySelectorAll('.ticker').forEach(t=> t.style.animationDuration = '20s');
+    },4000);
+
+    // FULLSCREEN ON CLICK/TOUCH
+    function tryFullScreen(){
+      try{
+        const el=document.documentElement;
+        if(el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+        else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      }catch(e){}
+    }
+    window.addEventListener('click',tryFullScreen,{once:true,passive:true});
+    window.addEventListener('touchstart',tryFullScreen,{once:true,passive:true});
+
+    window.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+  </script>
+</body>
+</html>
